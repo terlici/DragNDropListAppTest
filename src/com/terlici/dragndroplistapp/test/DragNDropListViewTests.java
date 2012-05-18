@@ -252,10 +252,6 @@ public class DragNDropListViewTests extends ActivityInstrumentationTestCase2<Dra
 		int itemposition = startposition - list.getFirstVisiblePosition();
 		View item = list.getChildAt(itemposition);
 		
-		item.setDrawingCacheEnabled(true);
-        Bitmap bitmapBefore = Bitmap.createBitmap(item.getDrawingCache());
-        item.setDrawingCacheEnabled(false);
-		
 		getActivity().runOnUiThread(new Runnable() {
 			
 			@Override
@@ -298,9 +294,52 @@ public class DragNDropListViewTests extends ActivityInstrumentationTestCase2<Dra
 		
 		// Positioning
 		assertEquals((long)startposition, list.getAdapter().getItemId(endposition));
+	}
+	
+	
+	public void testScrolledList() {
+		final DragNDropListView list = (DragNDropListView)getActivity().findViewById(com.terlici.dragndroplistapp.R.id.list1);
 		
-		item.setDrawingCacheEnabled(true);
-		// Test drawing
-		assertTrue(bitmapBefore.sameAs(item.getDrawingCache()));
+		getActivity().runOnUiThread(new Runnable() {
+			
+			@Override
+			public void run() {
+				list.setSelection(list.getCount() - 1);
+			}
+		});
+		
+		getInstrumentation().waitForIdleSync();
+		
+		int position = list.getLastVisiblePosition();
+		long id = list.getAdapter().getItemId(position);
+		View lastChild = list.getChildAt(list.getChildCount() - 1);
+		
+		float ystart = (float)(lastChild.getTop() + 40);
+		float yend = (float)(lastChild.getTop() - 40);
+		
+		final MotionEvent start = MotionEvent.obtain(0L, 0L, MotionEvent.ACTION_DOWN, 10.0f, ystart, 1.0f, 1.0f, 0, 0.0f, 0.0f, 0, 0);
+		final MotionEvent end = MotionEvent.obtain(0L, 0L, MotionEvent.ACTION_UP, 10.0f, yend, 1.0f, 1.0f, 0, 0.0f, 0.0f, 0, 0);
+		
+		TestListener listener = new TestListener();
+		
+		list.setOnItemDragNDropListener(listener);
+		
+		getActivity().runOnUiThread(new Runnable() {
+			
+			@Override
+			public void run() {
+				list.onTouchEvent(start);
+				list.onTouchEvent(end);
+			}
+		});
+		
+		getInstrumentation().waitForIdleSync();
+		
+		assertTrue(listener.onItemDragCalled);
+		assertTrue(listener.onItemDropCalled);
+		assertEquals(position, listener.startPosition);
+		assertEquals(position, listener.position);
+		assertEquals(position - 1, listener.endPosition);
+		assertEquals(id, listener.id);
 	}
 }
