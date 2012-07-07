@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.test.ActivityInstrumentationTestCase2;
@@ -140,7 +139,7 @@ public class DragNDropListViewTests extends ActivityInstrumentationTestCase2<Dra
 				
 				// We use this to test whether the callback was called before
 				// or after the floating item is drawn. It should be before, so
-				// that we can make changes to it if there is a need. For example
+				// that we can make changes to it if we want to. For example
 				// to show that it is floating by using a special background.
 				view.setBackgroundColor(Color.RED);
 			}
@@ -151,13 +150,12 @@ public class DragNDropListViewTests extends ActivityInstrumentationTestCase2<Dra
 		int x = (int)downin.getX();
 		int y = (int)downin.getY();
 		int startposition = list.pointToPosition(x, y);
-		int itemposition = startposition - list.getFirstVisiblePosition();
-		View item = list.getChildAt(itemposition);
+		int childposition = startposition - list.getFirstVisiblePosition();
+		View item = list.getChildAt(childposition);
 		int offset = y - item.getTop();
 		offset -= ((int)downin.getRawY()) - y;
 		
 		item.setDrawingCacheEnabled(true);
-        Bitmap bitmapBefore = Bitmap.createBitmap(item.getDrawingCache());
         item.setDrawingCacheEnabled(false);
 		
 		getActivity().runOnUiThread(new Runnable() {
@@ -170,7 +168,7 @@ public class DragNDropListViewTests extends ActivityInstrumentationTestCase2<Dra
 		
 		getInstrumentation().waitForIdleSync();
 		
-		Bitmap bitmapAfter = Bitmap.createBitmap(item.getDrawingCache());
+		View sameItem = list.getChildAt(childposition);
 		
 		assertTrue(list.isDragging());
 		assertNotNull(list.getDragView());
@@ -194,13 +192,13 @@ public class DragNDropListViewTests extends ActivityInstrumentationTestCase2<Dra
 		
 		list.getDragView().setDrawingCacheEnabled(true);
 		
-		assertFalse(bitmapBefore.sameAs(list.getDragView().getDrawingCache()));
-		assertTrue(bitmapAfter.sameAs(list.getDragView().getDrawingCache()));
-		
 		list.getDragView().setDrawingCacheEnabled(false);
 		
 		assertNotNull(item.getDrawingCache());
+		assertEquals(sameItem, item);
+		assertEquals(View.INVISIBLE, sameItem.getVisibility());
 		assertEquals(View.INVISIBLE, item.getVisibility());
+		
 		
 		assertTrue(listener.onItemDragCalled);
 		assertSame(list, listener.parent);
@@ -249,8 +247,8 @@ public class DragNDropListViewTests extends ActivityInstrumentationTestCase2<Dra
 		int y = (int)downin.getY();
 		int startposition = list.pointToPosition(x, y);
 		int endposition = list.pointToPosition((int)up.getX(), (int)up.getY());
-		int itemposition = startposition - list.getFirstVisiblePosition();
-		View item = list.getChildAt(itemposition);
+		int childposition = startposition - list.getFirstVisiblePosition();
+		View item = list.getChildAt(childposition);
 		
 		getActivity().runOnUiThread(new Runnable() {
 			
