@@ -318,15 +318,16 @@ public class DragNDropListViewTests extends ActivityInstrumentationTestCase2<Dra
 			
 			@Override
 			public void run() {
-				list.setSelection(list.getCount() - 1);
+				list.setSelection(list.getCount() - 1 - list.getFooterViewsCount());
 			}
 		});
 		
 		getInstrumentation().waitForIdleSync();
 		
-		int position = list.getLastVisiblePosition();
+
+		int position = list.getLastVisiblePosition() - 1;
 		long id = list.getAdapter().getItemId(position);
-		View lastChild = list.getChildAt(list.getChildCount() - 1);
+		View lastChild = list.getChildAt(list.getChildCount() - 1 - list.getFooterViewsCount());
 		
 		float ystart = (float)(lastChild.getTop() + 40);
 		float yend = (float)(lastChild.getTop() - 40);
